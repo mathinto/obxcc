@@ -1,0 +1,122 @@
+DROP SCHEMA IF EXISTS `cooler` ;
+
+
+CREATE SCHEMA IF NOT EXISTS `cooler` DEFAULT CHARACTER SET utf8 ;
+USE `cooler` ;
+
+
+DROP TABLE IF EXISTS `contactform` ;
+
+CREATE TABLE IF NOT EXISTS `contactform` (
+  `cellphone` VARCHAR(10) NOT NULL,
+  `firstname` VARCHAR(20) NOT NULL,
+  `lastname` VARCHAR(20) NOT NULL,
+  `email` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(25) NOT NULL,
+  PRIMARY KEY (`cellphone`),
+  UNIQUE INDEX `cellphone_UNIQUE` (`cellphone` ASC) )
+;
+
+
+
+DROP TABLE IF EXISTS `homeadd` ;
+
+CREATE TABLE IF NOT EXISTS `homeadd` (
+  `stadd` VARCHAR(100) NOT NULL,
+  `city` CHAR(25) NOT NULL,
+  `state` CHAR(2) NOT NULL,
+  `zipcode` INT(5) NOT NULL,
+  `contactform_cellphone` VARCHAR(10) NOT NULL,
+  INDEX `fk_homeadd_contactform1_idx` (`contactform_cellphone` ASC) ,
+  CONSTRAINT `fk_homeadd_contactform1`
+    FOREIGN KEY (`contactform_cellphone`)
+    REFERENCES `contactform` (`cellphone`)
+    )
+;
+
+DROP TABLE IF EXISTS `order` ;
+
+CREATE TABLE IF NOT EXISTS `order` (
+  `ordernum` INT NOT NULL AUTO_INCREMENT,
+  `startdate` DATE NOT NULL,
+  `enddate` DATE NOT NULL,
+  `contactform_cellphone` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`ordernum`, `contactform_cellphone`),
+  INDEX `fk_order_contactform_idx` (`contactform_cellphone` ASC),
+  CONSTRAINT `fk_order_contactform`
+    FOREIGN KEY (`contactform_cellphone`)
+    REFERENCES `contactform` (`cellphone`)
+    )
+;
+
+
+DROP TABLE IF EXISTS `deladd` ;
+
+CREATE TABLE IF NOT EXISTS `deladd` (
+  `stradd` VARCHAR(100) NOT NULL,
+  `town` CHAR(25) NOT NULL,
+  `milepost` DECIMAL(4) NOT NULL,
+  `housename` VARCHAR(50) NULL,
+  `order_ordernum` INT NOT NULL,
+  `order_contactform_cellphone` VARCHAR(10) NOT NULL,
+  INDEX `fk_deladd_order1_idx` (`order_ordernum` ASC, `order_contactform_cellphone` ASC),
+  CONSTRAINT `fk_deladd_order1`
+    FOREIGN KEY (`order_ordernum` , `order_contactform_cellphone`)
+    REFERENCES `order` (`ordernum` , `contactform_cellphone`)
+   )
+;
+
+
+
+DROP TABLE IF EXISTS `cooler` ;
+
+CREATE TABLE IF NOT EXISTS `cooler` (
+  `icequantity` INT NOT NULL,
+  `icetype` CHAR(1) NOT NULL,
+  `order_ordernum` INT NOT NULL,
+  `order_contactform_cellphone` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`order_ordernum`, `order_contactform_cellphone`),
+  INDEX `fk_cooler_order1_idx` (`order_ordernum` ASC, `order_contactform_cellphone` ASC) VISIBLE,
+  CONSTRAINT `fk_cooler_order1`
+    FOREIGN KEY (`order_ordernum` , `order_contactform_cellphone`)
+    REFERENCES `order` (`ordernum` , `contactform_cellphone`)
+    )
+;
+
+
+DROP TABLE IF EXISTS `bevselect` ;
+
+CREATE TABLE IF NOT EXISTS `bevselect` (
+  `bev1` CHAR(5) NULL,
+  `bev2` CHAR(5) NULL,
+  `bev3` CHAR(5) NULL,
+  `cooler_order_ordernum` INT NOT NULL,
+  `cooler_order_contactform_cellphone` VARCHAR(10) NOT NULL,
+  INDEX `fk_bevselect_cooler1_idx` (`cooler_order_ordernum` ASC, `cooler_order_contactform_cellphone` ASC),
+  CONSTRAINT `fk_bevselect_cooler1`
+    FOREIGN KEY (`cooler_order_ordernum` , `cooler_order_contactform_cellphone`)
+    REFERENCES `cooler` (`order_ordernum` , `order_contactform_cellphone`)
+    )
+
+
+
+DROP TABLE IF EXISTS `checkout` ;
+
+CREATE TABLE IF NOT EXISTS `checkout` (
+  `cardname` VARCHAR(50) NOT NULL,
+  `cardnumber` VARCHAR(20) NOT NULL,
+  `expmonth` VARCHAR(2) NOT NULL,
+  `expyear` VARCHAR(4) NOT NULL,
+  `cvv` VARCHAR(4) NOT NULL,
+  `cooler_order_ordernum` INT NOT NULL,
+  `cooler_order_contactform_cellphone` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`cardnumber`, `cooler_order_ordernum`, `cooler_order_contactform_cellphone`),
+  INDEX `fk_checkout_cooler1_idx` (`cooler_order_ordernum` ASC, `cooler_order_contactform_cellphone` ASC),
+  CONSTRAINT `fk_checkout_cooler1`
+    FOREIGN KEY (`cooler_order_ordernum` , `cooler_order_contactform_cellphone`)
+    REFERENCES `cooler` (`order_ordernum` , `order_contactform_cellphone`)
+    )
+;
+
+
+
